@@ -62,17 +62,26 @@ class DifferentiableCategorical(nn.Module):
         logits = torch.where(onehot == 1,true_val,other_val)
         return logits
 
-    def mask_rare_tokens(self,logits):
+    def mask_rare_tokens_bioseq2seq(self,logits):
         '''Non-nucleotide chars may receive gradient scores, set them to a small number'''
         mask1 = torch.tensor([0,0,1,1,1,1,0,0],device=logits.device)
         mask2 = torch.tensor([-10000,-10000,0,0,0,0,-10000,-10000],device=logits.device)
         return logits*mask1 + mask2
     
+    def mask_rare_tokens(self,logits):
+        '''Non-nucleotide chars may receive gradient scores, set them to a small number'''
+        mask1 = torch.tensor([0,0,0,0,0,0,0,1,1,1,1,0],device=logits.device)
+        b = -1000
+        mask2 = torch.tensor([b,b,b,b,b,b,b,0,0,0,0,b],device=logits.device)
+        return logits*mask1 + mask2
+    
     def onehot_sample(self):
         #sample = self.__dist__().sample()
-        #sample = self.sample_n(self.n_samples).squeeze(1) #.transpose(1,0) #.squeeze(2)
-        sample = self.sample_n(self.n_samples).transpose(1,0).squeeze(2)
+        sample = self.sample_n(self.n_samples).squeeze(1) #.transpose(1,0) #.squeeze(2)
+        #print(f'initial = {sample.shape}') 
+        #sample = self.sample_n(self.n_samples).transpose(1,0).squeeze(2)
         onehot_sample = self.to_onehot(sample)
+        #print(f'onehot_sample = {onehot_sample.shape}')
         return onehot_sample
 
     def sample(self):

@@ -98,7 +98,8 @@ def oracle_maximizer_template(designer,args):
                         callbacks=[], 
                         learning_rate=args.lr,
                         n_samples=args.n_samples,
-                        max_iter=args.n_iter)
+                        max_iter=args.n_iter,
+                        mask_rare_tokens=True)
     return template
 
 def setup_model_from_lightning(module,device):
@@ -131,16 +132,15 @@ def run_all_trials(designer : NucleotideDesigner,
         seed_sequence = designer.seed_sequence()
         seed_as_nuc = designer.dense_decode(seed_sequence)
         
-        '''
         short_names={'normal': 'STE','softmax':'STE-SM',
                      'gumbel_softmax':'STE-GS','reinforce':'REINFORCE'}
         # all the optimization modes 
         for norm in ['instance', None]: 
             for grad in ['normal','softmax','gumbel_softmax','reinforce']: 
                 maximizer = template(seed_sequence,mode='optimize',grad=grad,norm=norm)
-                best_seq,improvement,results = maximizer.fit(max_iter=args.n_iter,
+                best_seq,fasta_to_save,improvement,results = maximizer.fit(max_iter=args.n_iter,
                                                              stalled_tol=args.tol)
-                best_as_nuc = designer.dense_decode(best_seq)
+                best_as_nuc = best_seq
                 name = f'PR-{short_names[grad]}' if norm is None else f'PR-{short_names[grad]}-norm'
                 entry = {'seq' : i, 'trial' :  name, 'difference' : -improvement.item(),
                         'initial_loss' : -results[0], 'final_loss' : -results[-1], 
@@ -153,7 +153,6 @@ def run_all_trials(designer : NucleotideDesigner,
                        args.property,
                        cols=4)
         ''' 
-        
         mc_trajectories = {} 
         mcmc_names={'gibbs_with_gradients': 'MCMC-GWG',
                     'path_auxiliary':'MCMC-PA',
@@ -176,7 +175,7 @@ def run_all_trials(designer : NucleotideDesigner,
                        args.max_train_val,
                        args.property,
                        cols=4)
-
+        '''
     summarize_trials(storage,args.results_name,args.property)
 
 def summarize_trials(storage,name,property):

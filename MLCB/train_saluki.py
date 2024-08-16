@@ -11,11 +11,11 @@ def parse_args():
     parser.add_argument('--batch_size',type=int,default=64)
     parser.add_argument('--max_epochs',type=int,default=100)
     parser.add_argument('--lr',type=float,default=1e-3)
-    parser.add_argument('--weight_decay',type=float,default=1e-3)
+    parser.add_argument('--weight_decay',type=float,default=0.1)
     parser.add_argument('--decile_limit',type=int,default=None)
     parser.add_argument('--n_layers',type=int,default=3)
+    parser.add_argument('--rnn_type',type=str,default='lstm')
     parser.add_argument('--model_dim',type=int,default=64)
-    parser.add_argument('--embed_dim',type=int,default=64)
     parser.add_argument('--downsample',action='store_true')
     parser.add_argument('--evidential',action='store_true')
     parser.add_argument('--no_aux',action='store_true')
@@ -62,13 +62,14 @@ if __name__ == "__main__":
     # train the model
     module = SalukiDegradation(n_layers=args.n_layers,
                                model_dim=args.model_dim,
-                               embed_dim=args.embed_dim,
                                downsample=args.downsample,
                                include_aux=include_aux,
                                dropout=args.dropout,
                                steps_per_epoch=steps_per_epoch,
                                max_epochs=max_epochs,
-                               weight_decay=args.weight_decay)
+                               weight_decay=args.weight_decay,
+                               evidential=args.evidential,
+                               rnn_type=args.rnn_type)
     
     devices = [args.device] if args.device >= 0 else 'cpu'
     accelerator = "gpu" if args.device >= 0 else "cpu"

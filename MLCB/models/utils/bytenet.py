@@ -64,9 +64,9 @@ class ByteNetLayer(torch.nn.Module):
 
 class ByteNetRNNRegression(torch.nn.Module):
     
-    def __init__(self,n_outputs,embed_dim,reduction,
+    def __init__(self,n_outputs,reduction,
                  model_dim=128,n_layers=10,downsample=True,
-                 pool_type='none',rnn_type='gru',evidential=False,
+                 pool_type='none',rnn_type='lstm',evidential=False,
                  dropout=0.2,max_dilation_factor=0):
         
         super().__init__()
@@ -85,8 +85,10 @@ class ByteNetRNNRegression(torch.nn.Module):
                                                     dropout=dropout) for i in range(n_layers)])
 
         RNN = nn.GRU if rnn_type == 'gru' else nn.LSTM
+        ''' 
         self.in_rnn = RNN(embed_dim,model_dim // 2,
-                            batch_first=True,bidirectional=True) 
+                            batch_first=True,bidirectional=True)
+        '''
         self.out_rnn = RNN(model_dim,model_dim // 2,
                             batch_first=True,bidirectional=True)
 
@@ -121,8 +123,9 @@ class ByteNetRNNRegression(torch.nn.Module):
         '''x : torch.Tensor of shape (batch_size,sequence_length)'''
         
         # RNNs expect input of shape (batch_size,sequence_length,embedding_size)
-        x = self.apply_rnn(self.in_rnn,seq_embed,seq_lens)
-        
+        #x = self.apply_rnn(self.in_rnn,seq_embed,seq_lens)
+        x = seq_embed
+
         # 1D ByteNet layers expect input of shape (batch_size,embedding_size,sequence_length) 
         x = x.permute(0,2,1)
         for layer in self.cnn_layers:

@@ -45,7 +45,8 @@ def apply_transform(x):
     '''Transforms a string of nucleotides into a list of integers'''
 
     seq_id = x['seq_id']
-    mapping = {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3}
+    #mapping = {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3}
+    mapping = {'[CLS]': 0, '[SEP]': 1, '[BOS]': 2, '[MASK]': 3, '[PAD]': 4, '[RESERVED]': 5, '[UNK]': 6, 'A': 7, 'C': 8, 'G': 9, 'T': 10, 'N': 11}
     utr = [mapping[x] for x in x['utr']]
     mrl = torch.tensor(x['mrl'],dtype=torch.float32) if 'mrl' in x else None
     return torch.tensor(utr,dtype=torch.int64),mrl,seq_id

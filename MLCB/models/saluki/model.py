@@ -13,16 +13,14 @@ class HalfLife(ByteNetRNNRegression):
                  vocab_size=8,
                  n_layers=3,
                  model_dim=128,
-                 embed_dim=128,
                  downsample=True,
                  pool_type='max',
                  rnn_type='gru',
                  evidential=False,
                  dropout=0.3,
-                 max_dilation_factor=8):
+                 max_dilation_factor=0):
         
         super().__init__(n_outputs=2,
-                        embed_dim=embed_dim,
                         reduction='first',
                         model_dim=model_dim,
                         n_layers=n_layers,
@@ -33,13 +31,13 @@ class HalfLife(ByteNetRNNRegression):
                         dropout=dropout,
                         max_dilation_factor=max_dilation_factor)
         
-        #self.embedding = nn.Embedding(6,embed_dim,padding_idx=5)
+        #self.embedding = nn.Embedding(6,model_dim,padding_idx=5)
         self.in_cnn = nn.Conv1d(in_channels=vocab_size,
-                                out_channels=embed_dim,
+                                out_channels=model_dim,
                                 kernel_size=5,
                                 padding='same')
-        #self.layernorm = nn.InstanceNorm1d(embed_dim,affine=True)
-        self.layernorm = nn.LayerNorm(embed_dim,elementwise_affine=True)
+        #self.layernorm = nn.InstanceNorm1d(model_dim,affine=True)
+        self.layernorm = nn.LayerNorm(model_dim,elementwise_affine=True)
 
     def reshaped_layernorm(self,x):
         x = x.permute(0,2,1)
@@ -65,7 +63,6 @@ class SalukiDegradation(pl.LightningModule):
                 steps_per_epoch,
                 max_epochs,
                 include_aux=True,
-                embed_dim=64,
                 downsample=True,
                 pool_type='max',
                 rnn_type='gru',
@@ -83,11 +80,11 @@ class SalukiDegradation(pl.LightningModule):
         self.evidential = evidential 
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
-        vocab_size = 6 if include_aux else 4
+        #vocab_size = 6 if include_aux else 4
+        vocab_size = 16 
         self.model = HalfLife(vocab_size=vocab_size,
                                 n_layers=n_layers,
                                 model_dim=model_dim,
-                                embed_dim=embed_dim,
                                 downsample=downsample,
                                 pool_type=pool_type,
                                 rnn_type=rnn_type,

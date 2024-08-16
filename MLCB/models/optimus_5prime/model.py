@@ -30,7 +30,7 @@ class MeanRibosomeLoad(ByteNetRNNRegression):
                         dropout=dropout,
                         max_dilation_factor=max_dilation_factor)
 
-        self.in_cnn = nn.Conv1d(in_channels=4,
+        self.in_cnn = nn.Conv1d(in_channels=12,
                                 out_channels=embed_dim,
                                 kernel_size=5,
                                 padding='same')
@@ -38,6 +38,7 @@ class MeanRibosomeLoad(ByteNetRNNRegression):
     
     def forward(self,x):
         '''x : torch.Tensor of shape (batch_size,sequence_length)'''
+        
         x = self.in_cnn(x.permute(0,2,1))
         x = F.gelu(self.layernorm(x))
         x = x.permute(0,2,1)
@@ -120,7 +121,7 @@ class MeanRibosomeLoadModule(pl.LightningModule):
 
     def setup_batch(self,batch):
         utr = torch.stack(batch['utr'],dim=0).to(self.device)
-        utr = torch.nn.functional.one_hot(utr.squeeze(),num_classes=4).float()#.permute(0,2,1).float()
+        utr = torch.nn.functional.one_hot(utr.squeeze(),num_classes=12).float()#.permute(0,2,1).float()
         target = torch.stack(batch['mrl'],dim=0).to(self.device).unsqueeze(1)
         return utr,target
     

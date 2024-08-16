@@ -33,10 +33,11 @@ def make_dataset_splits(data,random_seed=65,decile_limit=None):
     train,val = train_test_split(train,test_size=0.1,random_state=random_seed)
     return DegradationLoader(test),DegradationLoader(val),DegradationLoader(train)
 
-def numericalize_and_batch(x,include_aux=True,pad_to_max_len=True,is_human=False):
+def numericalize_and_batch(x,include_aux=False,pad_to_max_len=True,is_human=False):
     '''Transforms a string of nucleotides into a list of integers'''
-
-    mapping = {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3} # '<score>' :4,'<pad>' : 5}
+    
+    mapping = {'[CLS]': 0, '[SEP]': 1, '[BOS]': 2, '[MASK]': 3, '[PAD]': 4, '[RESERVED]': 5, '[UNK]': 6, 'A': 7, 'C': 8, 'G': 9, 'T': 10, 'N': 11}
+    #mapping = {'A' : 0, 'C' : 1, 'G' : 2, 'T' : 3} # '<score>' :4,'<pad>' : 5}
     B = defaultdict(list) 
     
     for entry in x:
@@ -49,7 +50,7 @@ def numericalize_and_batch(x,include_aux=True,pad_to_max_len=True,is_human=False
         
         # onehot_encode sequence
         seq = torch.tensor(seq,dtype=torch.int64)
-        seq = F.one_hot(seq,num_classes=4).float()
+        seq = F.one_hot(seq,num_classes=16).float()
         
         # fix length like in paper 
         if pad_to_max_len:
@@ -81,7 +82,7 @@ def build_datapipe(fname,
                    batch_size=None,
                    decile_limit=None,
                    max_tokens=60000,
-                   include_aux=True,
+                   include_aux=False,
                    pad_to_max_len=True,
                    is_human=False):
     
